@@ -2,14 +2,20 @@
 
 import React, { useState } from 'react';
 import styles from './styles/Home.module.css';
-import FileUpload from './components/FileUpload'
+import FileUpload from './components/FileUpload';
 import AudioPlayer from './components/AudioPlayer';
 import FeedbackResult from './components/FeedbackResult';
 
 export default function HomePage() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string>('');
-  const [result, setResult] = useState<any>(null);
+  type FeedbackResult = {
+    scores: Record<string, number>;
+    overallFeedback: string;
+    observation: string;
+  };
+
+  const [result, setResult] = useState<FeedbackResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleFileUpload = (file: File) => {
@@ -41,7 +47,11 @@ export default function HomePage() {
       <FileUpload onUpload={handleFileUpload} />
       {audioUrl && <AudioPlayer url={audioUrl} />}
       {audioFile && (
-        <button className={styles.button} onClick={handleProcess} disabled={loading}>
+        <button
+          className={styles.button}
+          onClick={handleProcess}
+          disabled={loading}
+        >
           {loading ? 'Processing...' : 'Process'}
         </button>
       )}
