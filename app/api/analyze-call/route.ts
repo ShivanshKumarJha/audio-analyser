@@ -53,15 +53,26 @@ async function transcribeAudio(uploadUrl: string): Promise<string> {
 }
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-  const file = formData.get('file') as File;
-  const buffer = Buffer.from(await file.arrayBuffer());
-
   try {
+    const formData = await req.formData();
+    const file = formData.get('file');
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json(
+        {
+          error: 'No file uploaded.',
+          scores: {},
+          overallFeedback: '',
+          observation: '',
+        },
+        { status: 400 }
+      );
+    }
+    const buffer = Buffer.from(await file.arrayBuffer());
+
     const uploadUrl = await uploadToAssembly(buffer);
     const transcript = await transcribeAudio(uploadUrl);
 
-    const text = transcript.toLowerCase();
+    const text = transcript?.toLowerCase?.() ?? '';
     const scores = {
       greeting: text.includes('hello') || text.includes('good morning') ? 5 : 0,
       collectionUrgency: text.includes('pay') || text.includes('due') ? 14 : 7,
@@ -104,9 +115,19 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result);
   } catch (err) {
+    let message = 'Unknown error';
     if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
+      message = err.message;
     }
-    return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
+    // Always return a consistent object shape
+    return NextResponse.json(
+      {
+        error: message,
+        scores: {},
+        overallFeedback: '',
+        observation: '',
+      },
+      { status: 500 }
+    );
   }
 }

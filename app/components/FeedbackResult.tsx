@@ -4,13 +4,22 @@ import styles from '../styles/Home.module.css';
 
 interface Props {
   data: {
-    scores: Record<string, number>;
-    overallFeedback: string;
-    observation: string;
+    scores?: Record<string, number>;
+    overallFeedback?: string;
+    observation?: string;
+    error?: string;
   };
 }
 
 const FeedbackResult: React.FC<Props> = ({ data }) => {
+  if (data.error) {
+    return <div className={styles.resultBox}>Error: {data.error}</div>;
+  }
+
+  if (!data.scores || Object.keys(data.scores).length === 0) {
+    return <div className={styles.resultBox}>No scores available.</div>;
+  }
+
   return (
     <div className={styles.resultBox}>
       <h2>Scores</h2>
